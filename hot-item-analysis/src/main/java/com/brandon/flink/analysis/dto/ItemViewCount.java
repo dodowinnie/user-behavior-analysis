@@ -5,19 +5,18 @@ package com.brandon.flink.analysis.dto;
  */
 public class ItemViewCount {
 
-    public Long userId;
+    public Long itemId;
 
     public Long windowEnd;
 
     public Long count;
 
-
-    public Long getUserId() {
-        return userId;
+    public Long getItemId() {
+        return itemId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
     }
 
     public Long getWindowEnd() {
@@ -39,9 +38,14 @@ public class ItemViewCount {
     public ItemViewCount() {
     }
 
-    public ItemViewCount(Long userId, Long windowEnd, Long count) {
-        this.userId = userId;
+    public ItemViewCount(Long itemId, Long windowEnd, Long count) {
+        this.itemId = itemId;
         this.windowEnd = windowEnd;
         this.count = count;
+    }
+
+    @Override
+    public String toString() {
+        return "ItemViewCount:{itemId:" + this.itemId + ",windowEnd:" + this.windowEnd + ",count:" + this.count + "}";
     }
 }
