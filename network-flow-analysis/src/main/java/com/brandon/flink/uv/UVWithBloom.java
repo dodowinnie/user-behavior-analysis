@@ -3,6 +3,8 @@ package com.brandon.flink.uv;
 import com.brandon.flink.analysis.dto.UserBehavior;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -31,14 +33,13 @@ public class UVWithBloom {
             }
         }));
 
-        DataStream<> uvStream = dataStream
+        dataStream
                 .filter(x -> "pv".equals(x.behavior))
-                .map(data -> {
-                    return new Tuple2<String, Long>("uv", data.userId);
-                }).keyBy(new KeySelector<Tuple2<String, Long>, Long>() {
+                .map(data -> new Tuple2<String, Long>("uv", data.userId)).returns(TypeInformation.of(new TypeHint<Tuple2<String, Long>>() {
+        })).keyBy(new KeySelector<Tuple2<String, Long>, String>() {
                     @Override
-                    public Long getKey(Tuple2<String, Long> value) throws Exception {
-                        return value.f1;
+                    public String getKey(Tuple2<String, Long> value) throws Exception {
+                        return value.f0;
                     }
                 }).timeWindow(Time.hours(1))
                 .trigger(new MyTrigger()).process(new UVCountWithBloom());

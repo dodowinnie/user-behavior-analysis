@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class Bloom implements Serializable {
 
     // 位图容量
-    private Long cap; // 默认是2的整次幂
+    private Long cap; // 默认是2的整次幂，位的个数
 
     public Bloom(Long cap) {
         this.cap = cap;
