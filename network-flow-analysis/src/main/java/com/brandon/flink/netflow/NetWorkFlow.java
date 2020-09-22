@@ -1,6 +1,7 @@
 package com.brandon.flink.netflow;
 
 import com.brandon.flink.analysis.dto.ApacheLogEvent;
+import com.brandon.flink.analysis.dto.UrlViewCount;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -28,28 +29,27 @@ public class NetWorkFlow {
      * @throws ParseException
      */
 
-    public static void main(final String[] args) throws ParseException {
+    public static void main(final String[] args) throws Exception {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         final SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy:HH:mm:ss");
-        DataStreamSource<String> source = env.readTextFile("D:\\Idea\\user-behavior-analysis\\network-flow-analysis\\src\\main\\resources\\apache.log");
+        DataStreamSource<String> source = env.readTextFile("network-flow-analysis/src/main/resources/apache.log");
         // 抽取数据
         DataStream<ApacheLogEvent> dataStream = source.map(data -> {
             String[] arr = data.split(" ");
-            return new ApacheLogEvent(arr[0], Long.valueOf(arr[2]), Long.valueOf(format.parse(arr[3]).getTime() / 1000), arr[5], arr[6]);
+            return new ApacheLogEvent(arr[0], null, Long.valueOf(format.parse(arr[3]).getTime() / 1000), arr[5], arr[6]);
         }).assignTimestampsAndWatermarks(WatermarkStrategy.<ApacheLogEvent>forMonotonousTimestamps().withTimestampAssigner((SerializableTimestampAssigner<ApacheLogEvent>) (element, recordTimestamp) -> element.eventTime * 1000));
 
         // 按url分组开窗,聚合
-        dataStream.keyBy(new KeySelector<ApacheLogEvent, String>() {
-            @Override
-            public String getKey(ApacheLogEvent value) throws Exception {
-                return value.url;
-            }
-        }).window(SlidingEventTimeWindows.of(Time.minutes(10), Time.seconds(5))).aggregate(new CountAgg(), new WindowResultFunction());
+        DataStream<UrlViewCount> aggregateStream = dataStream.keyBy(ApacheLogEvent::getUrl).window(SlidingEventTimeWindows.of(Time.minutes(10), Time.seconds(5))).aggregate(new CountAgg(), new WindowResultFunction());
 
+        // 按windowEnd分组，排序
+        DataStream<String> process = aggregateStream.keyBy(UrlViewCount::getWindowEnd).process(new NetWorkFlowProcess(5));
 
+        process.print("network-flow");
+        env.execute("test");
 
 
     }

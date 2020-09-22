@@ -19,4 +19,28 @@ public class UrlViewCount {
 
     public UrlViewCount() {
     }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public Integer getCount() {
+        return count;
+    }
+
+    public void setCount(Integer count) {
+        this.count = count;
+    }
+
+    public Long getWindowEnd() {
+        return windowEnd;
+    }
+
+    public void setWindowEnd(Long windowEnd) {
+        this.windowEnd = windowEnd;
+    }
 }
