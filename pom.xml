@@ -11,6 +11,7 @@
         <module>hot-item-analysis</module>
         <module>network-flow-analysis</module>
         <module>analysis-dto</module>
+        <module>market-analysis</module>
     </modules>
     <packaging>pom</packaging>
 
