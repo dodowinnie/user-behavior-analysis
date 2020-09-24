@@ -12,6 +12,7 @@
         <module>network-flow-analysis</module>
         <module>analysis-dto</module>
         <module>market-analysis</module>
+        <module>login-fail-detect</module>
     </modules>
     <packaging>pom</packaging>
 

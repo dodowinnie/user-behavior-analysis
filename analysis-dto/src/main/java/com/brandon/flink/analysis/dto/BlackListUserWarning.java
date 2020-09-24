@@ -19,4 +19,9 @@ public class BlackListUserWarning {
 
     public BlackListUserWarning() {
     }
+
+    @Override
+    public String toString() {
+        return "BlackListUserWarning{userId:" + userId + ", adId:" + adId + ", msg:" + msg + "}";
+    }
 }
