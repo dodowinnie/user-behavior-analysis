@@ -4,15 +4,19 @@ import com.brandon.flink.analysis.dto.LoginEvent;
 import org.apache.flink.api.common.eventtime.SerializableTimestampAssigner;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.cep.CEP;
+import org.apache.flink.cep.PatternStream;
+import org.apache.flink.cep.pattern.Pattern;
+import org.apache.flink.cep.pattern.conditions.IterativeCondition;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.time.Time;
 
 import java.time.Duration;
 
-public class LoginFailDetect {
+public class LoginFailWithCep {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -31,16 +35,31 @@ public class LoginFailDetect {
             }
         }));
 
-        // 判断检查，如果2秒之内连续登陆失败，输出报警信息
-        dataStream.keyBy(new KeySelector<LoginEvent, Long>() {
+        // 使用CEP步骤
+        // 1.定义匹配的模式，要求一个登录失败事件后紧跟另一个登录失败事件
+        Pattern<LoginEvent, LoginEvent> loginFailPattern = Pattern.<LoginEvent>begin("fristFail").where(new IterativeCondition<LoginEvent>() {
+            @Override
+            public boolean filter(LoginEvent value, Context<LoginEvent> ctx) throws Exception {
+                return "fail".equals(value.eventType);
+            }
+        }).next("secondFail").where(new IterativeCondition<LoginEvent>() {
+            @Override
+            public boolean filter(LoginEvent value, Context<LoginEvent> ctx) throws Exception {
+                return "fail".equals(value.eventType);
+            }
+        }).within(Time.seconds(2));
+
+        // 2.将模式应用到数据流上
+        PatternStream<LoginEvent> patternStream = CEP.pattern(dataStream.keyBy(new KeySelector<LoginEvent, Long>() {
             @Override
             public Long getKey(LoginEvent value) throws Exception {
                 return value.userId;
             }
-        }).process(new LoginFailWarningResult(2)).print();
+        }), loginFailPattern);
 
-        env.execute("login fail detect");
+        // 3.检出符合模式的数据流，需要调用select方法
+        patternStream.select(new LoginFailEventMatch()).print();
 
-
+        env.execute("cep");
     }
 }

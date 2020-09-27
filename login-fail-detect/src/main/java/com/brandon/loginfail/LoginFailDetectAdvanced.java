@@ -7,12 +7,11 @@ import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import java.time.Duration;
 
-public class LoginFailDetect {
+public class LoginFailDetectAdvanced {
 
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -37,9 +36,10 @@ public class LoginFailDetect {
             public Long getKey(LoginEvent value) throws Exception {
                 return value.userId;
             }
-        }).process(new LoginFailWarningResult(2)).print();
+        }).process(new LoginFailWarningAdvancedResult(2)).print();
 
         env.execute("login fail detect");
+
 
 
     }

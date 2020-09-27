@@ -13,6 +13,7 @@
         <module>analysis-dto</module>
         <module>market-analysis</module>
         <module>login-fail-detect</module>
+        <module>order-pay-detect</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -64,6 +65,14 @@
             <artifactId>analysis-dto</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-cep -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-cep_2.12</artifactId>
+            <version>1.11.0</version>
+        </dependency>
+
 
 
 
